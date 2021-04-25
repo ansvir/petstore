@@ -12,10 +12,17 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    String name;
-    @ManyToMany
-    @JoinTable(name = "TROLE_TUSER",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private RoleEnum name;
+
+    public Role() {}
+
+    public Role(RoleEnum name) {
+        this.name = name;
+    }
+
+    @ManyToMany(mappedBy = "roles")
     List<User> users;
 }

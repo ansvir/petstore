@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.validation.Valid;
 
 import com.petstore.backend.model.Role;
+import com.petstore.backend.model.RoleEnum;
 import com.petstore.backend.model.User;
 import com.petstore.backend.payload.JwtResponse;
 import com.petstore.backend.payload.LoginRequest;
@@ -15,6 +16,8 @@ import com.petstore.backend.payload.MessageResponse;
 import com.petstore.backend.payload.SignupRequest;
 import com.petstore.backend.repository.RoleRepository;
 import com.petstore.backend.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,6 +36,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -59,8 +65,12 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+                .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .collect(Collectors.toList());
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        logger.info(auth.getName());
+        auth.getAuthorities().forEach(el->logger.info("in auth controller /signin " + el.getAuthority()));
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
@@ -91,26 +101,26 @@ public class AuthController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            Role userRole = roleRepository.findByName("ROLE_USER")
+            Role userRole = roleRepository.findByName(RoleEnum.ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
                     case "admin":
-                        Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                        Role adminRole = roleRepository.findByName(RoleEnum.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
 
                         break;
                     case "mod":
-                        Role modRole = roleRepository.findByName("ROLE_MODERATOR")
+                        Role modRole = roleRepository.findByName(RoleEnum.ROLE_MODERATOR)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(modRole);
 
                         break;
                     default:
-                        Role userRole = roleRepository.findByName("ROLE_USER")
+                        Role userRole = roleRepository.findByName(RoleEnum.ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
                 }

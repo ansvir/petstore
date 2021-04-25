@@ -35,7 +35,10 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "cc_id") )
     List<CreditCard> creditCards;
-    @ManyToMany(mappedBy = "users")
+    @ManyToMany
+    @JoinTable(name = "TUSER_TROLE",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     Set<Role> roles;
 
     public User() {}
